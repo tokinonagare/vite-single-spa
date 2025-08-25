@@ -4,12 +4,15 @@
   "description": "Vite + Single-SPA microfrontend test project",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run dev:root\" \"npm run dev:home\"",
+    "dev": "concurrently \"npm run dev:root\" \"npm run dev:api\" \"npm run dev:home\"",
     "dev:root": "cd root-config && npm run dev",
+    "dev:api": "cd api-services && npm run dev",
     "dev:home": "cd home && npm run dev",
-    "build": "npm run build:root && npm run build:home",
+    "build": "npm run build:root && npm run build:api && npm run build:home",
     "build:root": "cd root-config && npm run build",
-    "build:home": "cd home && npm run build"
+    "build:api": "cd api-services && npm run build",
+    "build:home": "cd home && npm run build",
+    "install:all": "npm install && cd root-config && npm install && cd ../api-services && npm install && cd ../home && npm install"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

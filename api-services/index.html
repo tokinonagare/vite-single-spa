@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Services - 通用HTTP客户端</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            background: white;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .button {
+            background: #6C5CE7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #5a4fcf;
+        }
+        .button.success {
+            background: #00b894;
+        }
+        .button.info {
+            background: #0984e3;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌐 通用HTTP客户端服务</h1>
+        <p>现代化的HTTP客户端服务，专注于提供HTTP请求能力</p>
+        <p><strong>端口: 9101</strong> | <strong>不包含业务逻辑，由调用方定义API端点</strong></p>
+    </div>
+
+    <div class="section">
+        <h3>📚 使用说明</h3>
+        <p>API-services现在是一个纯粹的HTTP客户端服务，不包含具体的业务API。业务逻辑应该在调用方（如home应用）中定义。</p>
+        
+        <div class="code">// 推荐方式：使用便捷的客户端工厂
+const gameClient = await window.$api.createClient('game', {
+  baseURL: '/api/games',
+  timeout: 5000
+})
+
+// 发起请求（具体端点由调用方定义）
+const games = await gameClient.get('/featured?limit=4')
+
+// 或者高级方式：直接使用HTTP服务
+const httpService = window.$api.getHttpService()
+const customClient = httpService.createClient('custom', { ... })</div>
+    </div>
+
+    <div class="section">
+        <h3>🔧 HTTP客户端功能测试</h3>
+        <button class="button" onclick="testBasicHTTP()">测试基本HTTP请求</button>
+        <button class="button success" onclick="testClientManagement()">测试客户端管理</button>
+        <button class="button info" onclick="testAuthFeatures()">测试认证功能</button>
+        <button class="button" onclick="testCacheFeatures()">测试缓存功能</button>
+        <div id="httpResult" class="result" style="display: none;">
+            <pre id="httpResultContent"></pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>📊 服务状态</h3>
+        <button class="button" onclick="testHealthCheck()">健康检查</button>
+        <button class="button" onclick="clearAllCache()">清空缓存</button>
+        <div id="status">初始化中...</div>
+    </div>
+
+    <div class="section">
+        <h3>💡 调用方示例</h3>
+        <p>以下是在不同微应用中如何使用这个HTTP客户端服务的示例：</p>
+        
+        <h4>1. 游戏API示例（home应用专用）</h4>
+        <div class="code">// gameApi.js - 超简洁的初始化
+class GameApi {
+  constructor() {
+    // 直接在构造函数中创建客户端Promise
+    this._clientPromise = window.$api.createClient('game', {
+      baseURL: '/api/games',
+      timeout: 8000
+    })
+  }
+
+  async getFeaturedGames(options = {}) {
+    const client = await this._clientPromise
+    const params = new URLSearchParams(options).toString()
+    return client.get(`/featured?${params}`)
+  }
+
+  async getGameDetail(gameId) {
+    const client = await this._clientPromise
+    return client.get(`/${gameId}`)
+  }
+}
+
+export default new GameApi()</div>
+
+        <h4>2. 支付服务示例（在其他微应用中）</h4>
+        <div class="code">// paymentApi.js - 同样简洁
+class PaymentApi {
+  constructor() {
+    // 直接在构造函数中创建客户端Promise
+    this._clientPromise = window.$api.createClient('payment', {
+      baseURL: '/api/payments',
+      headers: { 'X-Service': 'payment' }
+    })
+  }
+
+  async processPayment(amount, method) {
+    const client = await this._clientPromise
+    return client.post('/process', { amount, method })
+  }
+
+  async getPaymentHistory() {
+    const client = await this._clientPromise
+    return client.get('/history')
+  }
+}
+
+export default new PaymentApi()</div>
+    </div>
+
+    <script type="module">
+        import { httpApi, serviceManager } from '/src/services.js'
+
+        // 工具函数
+        function showHttpResult(content) {
+            const resultDiv = document.getElementById('httpResult')
+            const contentDiv = document.getElementById('httpResultContent')
+            resultDiv.style.display = 'block'
+            contentDiv.textContent = content
+        }
+
+        // 测试函数
+        window.testFunctions = {
+            async testBasicHTTP() {
+                showHttpResult('正在测试基本HTTP请求功能...')
+                try {
+                    const httpService = await httpApi.getHttpService()
+                    
+                    // 测试基本请求方法
+                    const results = {
+                        service: 'HttpService',
+                        availableMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'UPLOAD'],
+                        defaultClient: {
+                            timeout: httpService.defaultClient.config.timeout,
+                            retry: httpService.defaultClient.config.retry,
+                            headers: httpService.defaultClient.config.headers
+                        },
+                        features: [
+                            '✅ 多客户端管理',
+                            '✅ 自动重试机制', 
+                            '✅ 请求/响应拦截器',
+                            '✅ 缓存管理',
+                            '✅ 认证令牌管理',
+                            '✅ 文件上传支持'
+                        ],
+                        usage: '由调用方定义具体API端点和业务逻辑'
+                    }
+                    
+                    showHttpResult(JSON.stringify(results, null, 2))
+                } catch (error) {
+                    showHttpResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testClientManagement() {
+                showHttpResult('正在测试HTTP客户端管理...')
+                try {
+                    const httpService = await httpApi.getHttpService()
+                    
+                    // 创建多个客户端
+                    const gameClient = httpService.createClient('game', {
+                        baseURL: '/api/games',
+                        timeout: 5000,
+                        headers: { 'X-Service': 'game' }
+                    })
+                    
+                    const userClient = httpService.createClient('user', {
+                        baseURL: '/api/users', 
+                        timeout: 8000,
+                        retry: 2
+                    })
+                    
+                    const results = {
+                        clientManagement: {
+                            createdClients: httpService.listClients(),
+                            gameClient: {
+                                name: 'game',
+                                baseURL: '/api/games',
+                                timeout: 5000
+                            },
+                            userClient: {
+                                name: 'user',
+                                baseURL: '/api/users',
+                                timeout: 8000
+                            }
+                        },
+                        benefits: [
+                            '不同服务使用不同配置',
+                            '独立的认证和缓存',
+                            '灵活的超时和重试设置',
+                            '便于服务隔离和管理'
+                        ]
+                    }
+                    
+                    showHttpResult(JSON.stringify(results, null, 2))
+                } catch (error) {
+                    showHttpResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testAuthFeatures() {
+                showHttpResult('正在测试认证功能...')
+                try {
+                    const httpService = await httpApi.getHttpService()
+                    
+                    // 创建用户客户端
+                    const userClient = httpService.createClient('auth-test', {
+                        baseURL: '/api/auth'
+                    })
+                    
+                    // 设置认证令牌
+                    const testToken = 'mock_jwt_token_12345'
+                    httpService.setAuthToken(testToken, 'auth-test')
+                    
+                    const results = {
+                        authentication: {
+                            method: 'Bearer Token',
+                            tokenSet: true,
+                            autoAttachment: '自动添加到请求头',
+                            clientSpecific: '可为不同客户端设置不同令牌'
+                        },
+                        features: [
+                            '全局令牌管理',
+                            '客户端级令牌管理', 
+                            '自动请求头注入',
+                            '令牌清除功能'
+                        ],
+                        example: {
+                            setGlobalToken: "httpService.setAuthToken('token')",
+                            setClientToken: "httpService.setAuthToken('token', 'clientName')",
+                            clearToken: "httpService.clearAuthToken('clientName')"
+                        }
+                    }
+                    
+                    showHttpResult(JSON.stringify(results, null, 2))
+                } catch (error) {
+                    showHttpResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testCacheFeatures() {
+                showHttpResult('正在测试缓存功能...')
+                try {
+                    const httpService = await httpApi.getHttpService()
+                    
+                    const results = {
+                        caching: {
+                            type: '内存缓存',
+                            ttl: '5分钟',
+                            keyGeneration: 'URL + 参数哈希',
+                            scope: '每个HTTP客户端独立缓存'
+                        },
+                        methods: {
+                            clearAllCache: 'httpService.clearAllCache()',
+                            clearClientCache: 'client.clearCache()',
+                            useCache: "client.get('/data', { useCache: true })"
+                        },
+                        benefits: [
+                            '减少网络请求',
+                            '提升响应速度',  
+                            '降低服务器负载',
+                            '改善用户体验'
+                        ]
+                    }
+                    
+                    // 清空所有缓存作为演示
+                    httpService.clearAllCache()
+                    
+                    showHttpResult(JSON.stringify(results, null, 2))
+                } catch (error) {
+                    showHttpResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testHealthCheck() {
+                showHttpResult('正在进行健康检查...')
+                try {
+                    const result = await serviceManager.getHealthStatus()
+                    showHttpResult(JSON.stringify(result, null, 2))
+                } catch (error) {
+                    showHttpResult(`错误: ${error.message}`)
+                }
+            },
+
+            async clearAllCache() {
+                try {
+                    await serviceManager.clearAllCache()
+                    document.getElementById('status').innerHTML = `
+                        <div style="color: green;">✅ 所有缓存已清空</div>
+                        <div>清空时间: ${new Date().toLocaleString()}</div>
+                    `
+                } catch (error) {
+                    document.getElementById('status').innerHTML = `
+                        <div style="color: red;">❌ 清空缓存失败: ${error.message}</div>
+                    `
+                }
+            }
+        }
+
+        // 绑定到全局
+        Object.assign(window, window.testFunctions)
+
+        // 初始化服务并更新状态
+        async function initServices() {
+            try {
+                await serviceManager.init()
+                document.getElementById('status').innerHTML = `
+                    <div style="color: green; margin-bottom: 10px;">✅ HTTP客户端服务初始化完成</div>
+                    <div><strong>已注册服务:</strong> ${serviceManager.getServiceNames().join(', ')}</div>
+                    <div><strong>服务类型:</strong> 通用HTTP客户端（不包含业务逻辑）</div>
+                    <div><strong>初始化时间:</strong> ${new Date().toLocaleString()}</div>
+                `
+            } catch (error) {
+                document.getElementById('status').innerHTML = `
+                    <div style="color: red;">❌ 初始化失败: ${error.message}</div>
+                `
+            }
+        }
+
+        initServices()
+    </script>
+</body>
+</html>

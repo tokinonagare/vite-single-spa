@@ -6,8 +6,9 @@
 
 ```
 vite-single-spa/
-├── root-config/          # Single-SPA 根配置应用 (React Native Web)
-├── home/                 # 主页微前端应用 (React Native Web)
+├── root-config/          # Single-SPA 根配置应用 (React Native Web) - :9000
+├── home/                 # 主页微前端应用 (React Native Web) - :9001
+├── api-services/        # 共享API服务微应用 - :9101
 ├── package.json          # 主项目配置
 └── setup.sh             # 安装脚本
 ```
@@ -70,17 +71,23 @@ cd home && npm install && cd ..
 npm run dev
 
 # 或分别启动
-npm run dev:root    # 根配置 http://localhost:9000
-npm run dev:home    # 主页应用 http://localhost:9001
+npm run dev:root     # 根配置 http://localhost:9000
+npm run dev:services # 共享服务 http://localhost:9101
+npm run dev:home     # 主页应用 http://localhost:9001
 ```
 
 ### 3. 访问应用
 
-打开浏览器访问 http://localhost:9000
+**主应用**: http://localhost:9000
+- 移动端风格的微前端应用集合
+- 通过共享服务获取动态数据
 
-- 点击 "主页应用" 按钮加载 React Native Web 微前端
-- 点击 "首页" 按钮返回主页
-- 体验 React Native 风格的触摸交互
+**共享服务测试**: http://localhost:9101  
+- 独立的API服务测试页面
+- 游戏数据、用户服务等API测试
+
+**单独访问**: http://localhost:9001
+- 独立运行的Home微应用
 
 ## 构建生产版本
 

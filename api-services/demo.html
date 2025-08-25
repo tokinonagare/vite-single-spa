@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Services - HTTP客户端演示</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            background: white;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .button {
+            background: #6C5CE7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #5a4fcf;
+        }
+        .button.success {
+            background: #00b894;
+        }
+        .button.danger {
+            background: #e17055;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .feature-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 现代化HTTP客户端演示</h1>
+        <p>基于Ky库构建的企业级HTTP客户端，支持重试、缓存、拦截器等高级功能</p>
+        <p><strong>端口: 9101</strong> | <strong>技术栈: Ky + Vite + ES Modules</strong></p>
+    </div>
+
+    <div class="grid">
+        <div class="feature-card">
+            <h3>🌐 HTTP客户端特性</h3>
+            <ul style="text-align: left;">
+                <li>基于现代Fetch API</li>
+                <li>自动重试机制</li>
+                <li>请求/响应拦截器</li>
+                <li>智能缓存管理</li>
+                <li>文件上传支持</li>
+                <li>认证令牌管理</li>
+            </ul>
+        </div>
+        <div class="feature-card">
+            <h3>🎮 游戏服务API</h3>
+            <ul style="text-align: left;">
+                <li>热门游戏获取</li>
+                <li>游戏分类管理</li>
+                <li>游戏搜索功能</li>
+                <li>游戏详情查询</li>
+                <li>响应式数据缓存</li>
+            </ul>
+        </div>
+        <div class="feature-card">
+            <h3>👤 用户服务API</h3>
+            <ul style="text-align: left;">
+                <li>用户认证登录</li>
+                <li>用户资料管理</li>
+                <li>偏好设置保存</li>
+                <li>头像上传功能</li>
+                <li>批量操作支持</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>🎮 游戏服务API测试</h3>
+        <button class="button" onclick="testFeaturedGames()">获取热门游戏</button>
+        <button class="button" onclick="testGameCategories()">获取游戏分类</button>
+        <button class="button" onclick="testSearchGames()">搜索游戏</button>
+        <button class="button" onclick="testGameDetail()">获取游戏详情</button>
+        <div id="gameResult" class="result" style="display: none;">
+            <pre id="gameResultContent"></pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>👤 用户服务API测试</h3>
+        <button class="button success" onclick="testUserLogin()">用户登录</button>
+        <button class="button" onclick="testUserProfile()">获取用户资料</button>
+        <button class="button" onclick="testUpdateProfile()">更新用户资料</button>
+        <button class="button" onclick="testUserPreferences()">获取用户偏好</button>
+        <button class="button" onclick="testUploadAvatar()">上传头像</button>
+        <div id="userResult" class="result" style="display: none;">
+            <pre id="userResultContent"></pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>🔧 HTTP客户端功能测试</h3>
+        <button class="button" onclick="testHttpClientFeatures()">测试基本功能</button>
+        <button class="button" onclick="testCacheFeatures()">测试缓存功能</button>
+        <button class="button danger" onclick="testErrorHandling()">测试错误处理</button>
+        <button class="button" onclick="testRetryFeatures()">测试重试机制</button>
+        <button class="button" onclick="testAuthFeatures()">测试认证功能</button>
+        <div id="httpResult" class="result" style="display: none;">
+            <pre id="httpResultContent"></pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>📊 服务状态监控</h3>
+        <button class="button" onclick="testHealthStatus()">健康状态检查</button>
+        <button class="button" onclick="clearAllCache()">清空所有缓存</button>
+        <div id="status">初始化中...</div>
+    </div>
+
+    <script type="module">
+        import { api, serviceManager } from '/src/services.js'
+
+        // 工具函数
+        function showGameResult(content) {
+            const resultDiv = document.getElementById('gameResult')
+            const contentDiv = document.getElementById('gameResultContent')
+            resultDiv.style.display = 'block'
+            contentDiv.textContent = content
+        }
+
+        function showUserResult(content) {
+            const resultDiv = document.getElementById('userResult')
+            const contentDiv = document.getElementById('userResultContent')
+            resultDiv.style.display = 'block'
+            contentDiv.textContent = content
+        }
+
+        function showHttpResult(content) {
+            const resultDiv = document.getElementById('httpResult')
+            const contentDiv = document.getElementById('httpResultContent')
+            resultDiv.style.display = 'block'
+            contentDiv.textContent = content
+        }
+
+        // 测试函数
+        window.testFunctions = {
+            // 游戏服务测试
+            async testFeaturedGames() {
+                showGameResult('正在获取热门游戏...')
+                try {
+                    const result = await api.getFeaturedGames({ limit: 4 })
+                    showGameResult(JSON.stringify(result, null, 2))
+                } catch (error) {
+                    showGameResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testGameCategories() {
+                showGameResult('正在获取游戏分类...')
+                try {
+                    const result = await api.getGameCategories()
+                    showGameResult(JSON.stringify(result, null, 2))
+                } catch (error) {
+                    showGameResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testSearchGames() {
+                showGameResult('正在搜索游戏...')
+                try {
+                    const result = await api.searchGames('音乐', { limit: 3 })
+                    showGameResult(JSON.stringify(result, null, 2))
+                } catch (error) {
+                    showGameResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testGameDetail() {
+                showGameResult('正在获取游戏详情...')
+                try {
+                    const result = await api.getGameDetail(1)
+                    showGameResult(JSON.stringify(result, null, 2))
+                } catch (error) {
+                    showGameResult(`错误: ${error.message}`)
+                }
+            },
+
+            // 用户服务测试
+            async testUserLogin() {
+                showUserResult('正在测试用户登录...')
+                try {
+                    const result = await api.login('player001', 'demo123')
+                    showUserResult(`登录成功:
+${JSON.stringify(result, null, 2)}`)
+                } catch (error) {
+                    showUserResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testUserProfile() {
+                showUserResult('正在获取用户资料...')
+                try {
+                    const result = await api.getUserProfile()
+                    showUserResult(`用户资料:
+${JSON.stringify(result, null, 2)}`)
+                } catch (error) {
+                    showUserResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testUpdateProfile() {
+                showUserResult('正在更新用户资料...')
+                try {
+                    const result = await api.updateUserProfile({
+                        level: 16,
+                        coins: 15000
+                    })
+                    showUserResult(`更新成功:
+${JSON.stringify(result, null, 2)}`)
+                } catch (error) {
+                    showUserResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testUserPreferences() {
+                showUserResult('正在获取用户偏好...')
+                try {
+                    const result = await api.getUserPreferences()
+                    showUserResult(`用户偏好:
+${JSON.stringify(result, null, 2)}`)
+                } catch (error) {
+                    showUserResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testUploadAvatar() {
+                showUserResult('正在模拟上传头像...')
+                try {
+                    const userService = await api.getUserService()
+                    const result = await userService.uploadAvatar(null)
+                    showUserResult(`上传成功:
+${JSON.stringify(result, null, 2)}`)
+                } catch (error) {
+                    showUserResult(`错误: ${error.message}`)
+                }
+            },
+
+            // HTTP客户端功能测试
+            async testHttpClientFeatures() {
+                showHttpResult('正在测试HTTP客户端基本功能...')
+                try {
+                    const userService = await api.getUserService()
+                    const httpClient = userService.getHttpClient()
+                    
+                    const results = {
+                        clientInfo: {
+                            library: 'Ky (轻量级现代HTTP客户端)',
+                            timeout: httpClient.config.timeout + 'ms',
+                            retry: httpClient.config.retry + ' 次',
+                            baseURL: httpClient.config.baseURL || '/api/users',
+                            features: [
+                                '✅ 基于Fetch API',
+                                '✅ 自动JSON解析',
+                                '✅ 请求/响应拦截器',
+                                '✅ TypeScript支持',
+                                '✅ 现代浏览器优化'
+                            ]
+                        },
+                        supportedMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'],
+                        advancedFeatures: [
+                            '自动重试机制',
+                            '请求缓存管理',
+                            '文件上传支持',
+                            '认证令牌管理',
+                            '错误处理增强',
+                            '请求取消支持'
+                        ]
+                    }
+                    
+                    showHttpResult(JSON.stringify(results, null, 2))
+                } catch (error) {
+                    showHttpResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testCacheFeatures() {
+                showHttpResult('正在测试缓存功能...')
+                try {
+                    const gameService = await api.getGameService()
+                    
+                    // 第一次请求
+                    const start1 = Date.now()
+                    await gameService.getFeaturedGames({ limit: 2 })
+                    const time1 = Date.now() - start1
+                    
+                    // 第二次请求（从缓存）
+                    const start2 = Date.now()
+                    await gameService.getFeaturedGames({ limit: 2 })
+                    const time2 = Date.now() - start2
+                    
+                    const results = {
+                        cacheTest: {
+                            firstRequest: `${time1}ms (从网络获取)`,
+                            cachedRequest: `${time2}ms (从缓存获取)`,
+                            improvement: `提速 ${Math.round((time1 - time2) / time1 * 100)}%`,
+                            cacheHit: time2 < time1 * 0.1
+                        },
+                        cacheStrategy: {
+                            type: '内存缓存',
+                            ttl: '5分钟',
+                            keyGeneration: 'URL + 参数哈希',
+                            invalidation: '支持手动清除'
+                        }
+                    }
+                    
+                    showHttpResult(JSON.stringify(results, null, 2))
+                } catch (error) {
+                    showHttpResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testErrorHandling() {
+                showHttpResult('正在测试错误处理...')
+                try {
+                    const gameService = await api.getGameService()
+                    
+                    const testResults = []
+                    
+                    // 测试不存在的游戏
+                    try {
+                        await gameService.getGameDetail(999)
+                    } catch (error) {
+                        testResults.push({
+                            test: '不存在资源测试',
+                            errorType: error.name || 'Error',
+                            errorMessage: error.message,
+                            handled: true
+                        })
+                    }
+                    
+                    const results = {
+                        errorHandling: testResults,
+                        features: [
+                            'HTTP状态码处理',
+                            '网络错误捕获',
+                            '超时错误处理',
+                            '自定义错误消息',
+                            '错误重试逻辑',
+                            '错误日志记录'
+                        ],
+                        benefits: [
+                            '提升用户体验',
+                            '便于问题排查',
+                            '增强应用稳定性'
+                        ]
+                    }
+                    
+                    showHttpResult(JSON.stringify(results, null, 2))
+                } catch (error) {
+                    showHttpResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testRetryFeatures() {
+                showHttpResult('正在测试重试机制...')
+                try {
+                    const userService = await api.getUserService()
+                    const httpClient = userService.getHttpClient()
+                    
+                    const results = {
+                        retryConfig: {
+                            maxRetries: httpClient.config.retry,
+                            timeout: httpClient.config.timeout + 'ms',
+                            strategy: '指数退避算法'
+                        },
+                        retryConditions: [
+                            '网络连接错误',
+                            '5xx服务器错误',
+                            '408请求超时',
+                            '429请求过于频繁'
+                        ],
+                        benefits: [
+                            '提高请求成功率',
+                            '处理临时网络故障',
+                            '减少用户感知的错误'
+                        ],
+                        implementation: {
+                            library: 'Ky内置重试机制',
+                            backoffStrategy: 'exponential',
+                            jitter: '随机化延迟',
+                            circuitBreaker: '断路器模式支持'
+                        }
+                    }
+                    
+                    showHttpResult(JSON.stringify(results, null, 2))
+                } catch (error) {
+                    showHttpResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testAuthFeatures() {
+                showHttpResult('正在测试认证功能...')
+                try {
+                    const userService = await api.getUserService()
+                    
+                    // 测试登录获取token
+                    const loginResult = await userService.login('player001', 'demo123')
+                    
+                    const results = {
+                        authentication: {
+                            method: 'Bearer Token',
+                            tokenReceived: !!loginResult.data.token,
+                            tokenStorage: '内存存储',
+                            autoAttachment: '自动添加到请求头'
+                        },
+                        features: [
+                            'JWT令牌支持',
+                            '自动令牌刷新',
+                            '令牌过期处理',
+                            '多种认证方式',
+                            '安全存储策略'
+                        ],
+                        securityMeasures: [
+                            '请求头自动注入',
+                            '令牌生命周期管理',
+                            '安全传输保证'
+                        ]
+                    }
+                    
+                    showHttpResult(JSON.stringify(results, null, 2))
+                } catch (error) {
+                    showHttpResult(`错误: ${error.message}`)
+                }
+            },
+
+            async testHealthStatus() {
+                showHttpResult('正在检查健康状态...')
+                try {
+                    const result = await serviceManager.getHealthStatus()
+                    showHttpResult(JSON.stringify(result, null, 2))
+                } catch (error) {
+                    showHttpResult(`错误: ${error.message}`)
+                }
+            },
+
+            async clearAllCache() {
+                try {
+                    await serviceManager.clearAllCache()
+                    document.getElementById('status').innerHTML = `
+                        <div style="color: green;">✅ 所有缓存已清空</div>
+                        <div>清空时间: ${new Date().toLocaleString()}</div>
+                    `
+                } catch (error) {
+                    document.getElementById('status').innerHTML = `
+                        <div style="color: red;">❌ 清空缓存失败: ${error.message}</div>
+                    `
+                }
+            }
+        }
+
+        // 绑定到全局
+        Object.assign(window, window.testFunctions)
+
+        // 初始化服务并更新状态
+        async function initServices() {
+            try {
+                await serviceManager.init()
+                document.getElementById('status').innerHTML = `
+                    <div style="color: green; margin-bottom: 10px;">✅ 服务初始化完成</div>
+                    <div><strong>已注册服务:</strong> ${serviceManager.getServiceNames().join(', ')}</div>
+                    <div><strong>HTTP客户端:</strong> Ky ${window.__KY_VERSION__ || '1.9.0'}</div>
+                    <div><strong>初始化时间:</strong> ${new Date().toLocaleString()}</div>
+                `
+            } catch (error) {
+                document.getElementById('status').innerHTML = `
+                    <div style="color: red;">❌ 初始化失败: ${error.message}</div>
+                `
+            }
+        }
+
+        initServices()
+    </script>
+</body>
+</html>

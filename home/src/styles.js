@@ -312,6 +312,66 @@ export const styles = StyleSheet.create({
     fontWeight: '600'
   },
 
+  // 加载状态样式
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    marginHorizontal: 16
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6C5CE7',
+    fontWeight: '500',
+    textAlign: 'center'
+  },
+
+  // 错误状态样式
+  errorContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFE6E6',
+    borderRadius: 12,
+    marginHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#FFB3B3'
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#D63384',
+    textAlign: 'center',
+    marginBottom: 12
+  },
+  retryButton: {
+    backgroundColor: '#6C5CE7',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600'
+  },
+
+  // 空状态样式
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    marginHorizontal: 16
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#636E72',
+    textAlign: 'center'
+  },
+
   // 底部导航
   bottomNavigation: {
     position: 'absolute',

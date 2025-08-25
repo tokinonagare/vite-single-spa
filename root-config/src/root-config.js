@@ -25,6 +25,13 @@ const loadApp = async (url) => {
   }
 };
 
+// 注册API服务（始终激活，提供API服务）
+registerApplication({
+  name: '@vite-single-spa/api-services',
+  app: () => loadApp('http://localhost:9101/src/services.js'),
+  activeWhen: () => true // 始终激活
+});
+
 // 注册首页微应用（默认显示）
 registerApplication({
   name: '@vite-single-spa/home',
