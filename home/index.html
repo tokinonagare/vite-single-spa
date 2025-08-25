@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - React微前端应用</title>
+    <script>
+      // 开发环境特殊处理
+      if (window.location.pathname === '/src/home.js') {
+        import('./src/home.js').then(module => {
+          // 将模块导出到全局
+          window.homeAppModule = module;
+          // 创建一个脚本标签返回模块内容
+          const script = document.createElement('script');
+          script.type = 'module';
+          script.text = `
+            export const bootstrap = window.homeAppModule.bootstrap;
+            export const mount = window.homeAppModule.mount;
+            export const unmount = window.homeAppModule.unmount;
+          `;
+          document.head.appendChild(script);
+        });
+      }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
